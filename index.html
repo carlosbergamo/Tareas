@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Task Listener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            text-align: left;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header {
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-weight: 700;
+            color: #0077b6;
+            font-size: 1.8em;
+        }
+
+        p {
+            margin: 0.5em 0;
+            color: #666;
+            font-size: 1em;
+        }
+
+        #mic-button {
+            background: linear-gradient(145deg, #00b4d8, #0096c7);
+            border: none;
+            padding: 10px 20px;
+            background: linear-gradient(145deg, #00b4d8, #0096c7);
+            border: none;
+            height: 50px;
+            color: white;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #mic-button:hover {
+            background-color: #0077b6;
+            transform: scale(1.05);
+        }
+
+        #reset-button {
+            background: linear-gradient(145deg, #ff6b6b, #d9534f);
+            border: none;
+            padding: 10px 20px;
+            height: 50px;
+            color: white;
+            font-size: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+            margin-left: 15px;
+        }
+
+        #reset-button:hover {
+            background-color: #c9302c;
+            transform: scale(1.05);
+        }
+
+        #task-list ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #tasks li {
+            background-color: #ffffff;
+            margin: 10px auto;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #tasks input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        #tasks .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        #tasks span {
+            margin-left: 10px;
+            text-transform: none;
+            font-size: 1.1em;
+        }
+
+        .progress-bar-wrapper {
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            width: 100%;
+            height: 25px;
+            margin: 30px auto;
+            overflow: hidden;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+        }
+
+        #progress-bar {
+            background: linear-gradient(90deg, #00b4d8, #0077b6);
+            height: 100%;
+            width: 0;
+            transition: width 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+            border-radius: 25px;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            padding-top: 20px;
+        }
+
+        #mic-button.active {
+            background-color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Daily Task Listener</h1>
+            <p>Convierte tus palabras en acciones y mantente organizado con una lista de tareas de voz.</p>
+        </header>
+        <main>
+            <section id="voice-input">
+                <button id="mic-button" class="mic"><i class="fas fa-microphone"></i> Hablar</button>
+                <button id="reset-button" class="reset-button">Restablecer Tareas</button>
+            </section>
+            <section id="task-list">
+                <ul id="tasks"></ul>
+            </section>
+            <section id="progress">
+                <div class="progress-bar-wrapper">
+                    <div id="progress-bar"></div>
+                </div>
+                <p id="progress-text"></p>
+            </section>
+        </main>
+        <footer>
+            <p>Desarrollado por Charlie Bérgamo</p>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const micButton = document.getElementById("mic-button");
+            const resetButton = document.getElementById("reset-button");
+            const tasksList = document.getElementById("tasks");
+            const progressBar = document.getElementById("progress-bar");
+            const progressText = document.getElementById("progress-text");
+            let tasks = [];
+
+            micButton.addEventListener("click", function() {
+                startRecognition();
+            });
+
+            resetButton.addEventListener("click", function() {
+                tasks = [];
+                renderTasks();
+                updateProgress();
+            });
+
+            function startRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    alert("Lo siento, tu navegador no soporta reconocimiento de voz");
+                    return;
+                }
+                const recognition = new SpeechRecognition();
+                recognition.lang = "es-ES";
+                recognition.start();
+                micButton.classList.add('active');
+
+                recognition.onresult = function(event) {
+                    micButton.classList.remove('active');
+                    const task = event.results[0][0].transcript;
+                    addTask(task);
+                };
+
+                recognition.onerror = function(event) {
+                    micButton.classList.remove('active');
+                    console.error("Error en el reconocimiento: ", event.error);
+                };
+            }
+
+            function addTask(task) {
+                if (task) {
+                    tasks.push({ text: task, completed: false });
+                    renderTasks();
+                }
+            }
+
+            function renderTasks() {
+                tasksList.innerHTML = "";
+                tasks.sort((a, b) => a.completed - b.completed);
+                tasks.forEach((task, index) => {
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.checked = task.completed;
+                    checkbox.addEventListener("change", function() {
+                        tasks[index].completed = checkbox.checked;
+                        renderTasks();
+                        updateProgress();
+                    });
+                    const taskItem = document.createElement("li");
+                    taskItem.appendChild(checkbox);
+                    const taskText = document.createElement("span");
+                    taskText.textContent = task.text.charAt(0).toUpperCase() + task.text.slice(1).toLowerCase() + '.';
+                    if (task.completed) {
+                        taskText.classList.add("completed");
+                    }
+                    taskItem.appendChild(taskText);
+                    tasksList.appendChild(taskItem);
+                    setTimeout(() => taskItem.style.opacity = 1, 50);
+                });
+                updateProgress();
+            }
+
+            function updateProgress() {
+                const completedTasks = tasks.filter(task => task.completed).length;
+                const totalTasks = tasks.length;
+                const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+                progressBar.style.width = progressPercentage + "%";
+                progressText.innerText = `Progreso: ${completedTasks}/${totalTasks} tareas completadas`;
+                tasks.forEach((task, index) => {
+                    const taskText = tasksList.children[index].querySelector("span");
+                    if (task.completed) {
+                        taskText.classList.add("completed");
+                    } else {
+                        taskText.classList.remove("completed");
+                    }
+                });
+                if (progressPercentage === 100) {
+                    congratulateUser();
+                }
+            }
+
+            function congratulateUser() {
+                alert("¡Felicidades! Has completado todas tus tareas del día.");
+            }
+        });
+    </script>
+</body>
+</html>
