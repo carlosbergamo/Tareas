@@ -21,11 +21,12 @@
         }
 
         .app-container {
+            
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1);
             max-width: 450px;
-            width: 100%;
+            width: calc(100% - 20px);
             padding: 30px;
             text-align: center;
         }
@@ -51,8 +52,6 @@
             background: linear-gradient(145deg, #00b4d8, #0096c7);
             border: none;
             padding: 10px 20px;
-            background: linear-gradient(145deg, #00b4d8, #0096c7);
-            border: none;
             height: 50px;
             color: white;
             font-size: 16px;
@@ -196,7 +195,10 @@
             const tasksList = document.getElementById("tasks");
             const progressBar = document.getElementById("progress-bar");
             const progressText = document.getElementById("progress-text");
-            let tasks = [];
+            let tasks = JSON.parse(localStorage.getItem('tasks'))?.filter(task => !task.completed) || [];
+
+            renderTasks();
+            updateProgress();
 
             micButton.addEventListener("click", function() {
                 startRecognition();
@@ -204,6 +206,7 @@
 
             resetButton.addEventListener("click", function() {
                 tasks = [];
+                saveTasks();
                 renderTasks();
                 updateProgress();
             });
@@ -234,7 +237,9 @@
             function addTask(task) {
                 if (task) {
                     tasks.push({ text: task, completed: false });
+                    saveTasks();
                     renderTasks();
+                    updateProgress();
                 }
             }
 
@@ -247,6 +252,7 @@
                     checkbox.checked = task.completed;
                     checkbox.addEventListener("change", function() {
                         tasks[index].completed = checkbox.checked;
+                        saveTasks();
                         renderTasks();
                         updateProgress();
                     });
@@ -261,7 +267,10 @@
                     tasksList.appendChild(taskItem);
                     setTimeout(() => taskItem.style.opacity = 1, 50);
                 });
-                updateProgress();
+            }
+
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
             }
 
             function updateProgress() {
@@ -270,14 +279,6 @@
                 const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
                 progressBar.style.width = progressPercentage + "%";
                 progressText.innerText = `Progreso: ${completedTasks}/${totalTasks} tareas completadas`;
-                tasks.forEach((task, index) => {
-                    const taskText = tasksList.children[index].querySelector("span");
-                    if (task.completed) {
-                        taskText.classList.add("completed");
-                    } else {
-                        taskText.classList.remove("completed");
-                    }
-                });
                 if (progressPercentage === 100) {
                     congratulateUser();
                 }
